@@ -55,7 +55,7 @@ ImmutableList<String> immutableList = stream.collect(Collectors2.immutable().fla
 ## Streams
 
 Do you constantly find your stream-loving self in possession of `java.lang.Iterable`s and
-`java.util.Iterator`]s but just want a `java.util.stream.Stream`? Do you go to
+`java.util.Iterator`s but just want a `java.util.stream.Stream`? Do you go to
 [Stack Overflow](http://stackoverflow.com/questions/24511052/java8-iterator-to-stream) every time
 you need to do this? How about some simple conversion functions?
 
