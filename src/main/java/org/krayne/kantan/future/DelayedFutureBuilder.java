@@ -1,45 +1,48 @@
 package org.krayne.kantan.future;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class DelayedFutureBuilder implements FutureBuilder {
+    private final Optional<Executor> executor;
     private final long delayMillis;
 
     DelayedFutureBuilder(long delayMillis) {
+        this(delayMillis, Optional.empty());
+    }
+
+    DelayedFutureBuilder(long delayMillis, Executor executor) {
+        this(delayMillis, Optional.of(executor));
+    }
+
+    private DelayedFutureBuilder(long delayMillis, Optional<Executor> executor) {
+        if (delayMillis < 0) {
+            throw new IllegalArgumentException("Delay cannot be negative");
+        }
         this.delayMillis = delayMillis;
+        this.executor = executor;
     }
 
     @Override
     public <T> CompletableFuture<T> supplyFuture(Supplier<CompletableFuture<T>> supplier) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        Timer timer = new Timer();
-        timer.schedule(new FutureTimerTask<>(supplier, future), this.delayMillis);
-        return future;
+        Runnable delayFunc = () -> delay(this.delayMillis);
+        CompletableFuture<Void> delayFuture = this.executor
+                .map(e -> CompletableFuture.runAsync(delayFunc, e))
+                .orElse(CompletableFuture.runAsync(delayFunc));
+        return delayFuture.thenCompose(r -> supplier.get());
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
-    private static class FutureTimerTask<T> extends TimerTask {
-        private final Supplier<CompletableFuture<T>> supplier;
-        private final CompletableFuture<T> future;
-
-        public FutureTimerTask(Supplier<CompletableFuture<T>> supplier, CompletableFuture<T> future) {
-            this.supplier = supplier;
-            this.future = future;
-        }
-
-        @Override
-        public void run() {
-            this.supplier.get().whenComplete((r, t) -> {
-                if (t != null) {
-                    this.future.completeExceptionally(t);
-                } else {
-                    this.future.complete(r);
-                }
-            });
+    private static void delay(long millis) {
+        if (millis > 0) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(millis);
+            } catch (InterruptedException e) {
+            }
         }
     }
 }

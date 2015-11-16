@@ -16,7 +16,7 @@ public class TimingFutureBuilder implements FutureBuilder {
 
     @Override
     public <T> CompletableFuture<T> supplyFuture(Supplier<CompletableFuture<T>> supplier) {
-        return CompletableFuture.supplyAsync(Timer::start)
-                .thenCompose(timer -> supplier.get().whenComplete((r, t) -> timingConsumer.accept(timer.read())));
+        Timer timer = Timer.start();
+        return supplier.get().whenComplete((r, t) -> timingConsumer.accept(timer.read()));
     }
 }

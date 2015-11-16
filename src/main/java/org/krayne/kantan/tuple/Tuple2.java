@@ -4,7 +4,11 @@ public class Tuple2<A, B> {
     private final A v1;
     private final B v2;
 
-    Tuple2(A v1, B v2) {
+    public static <A, B> Tuple2<A, B> of(A v1, B v2) {
+        return new Tuple2(v1, v2);
+    }
+
+    private Tuple2(A v1, B v2) {
         this.v1 = v1;
         this.v2 = v2;
     }
