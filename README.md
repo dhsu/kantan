@@ -10,6 +10,7 @@ More core libraries for Java 8+
 
 
 
+
 ## Collectors
 
 So you love [immutability](http://www.javapractices.com/topic/TopicAction.do?Id=29) and you're a
@@ -52,6 +53,7 @@ ImmutableList<String> immutableList = stream.collect(Collectors2.immutable().fla
 
 
 
+
 ## Streams
 
 Do you constantly find your stream-loving self in possession of `java.lang.Iterable`s and
@@ -70,6 +72,7 @@ overloaded methods give you that option.
 boolean isParallel = true;
 Stream.from(someIteratorOrIterable, isParallel);
 ```
+
 
 
 
@@ -92,6 +95,62 @@ With Kantan, just return ```Futures.exceptional(t)```
 
 ### Delayed Future
 
+Sometimes you just need a `CompletableFuture` that runs at a later time. Maybe you're simulating lag.
+Whatever the reason, you can do so easily with `Futures.delayed()`.
+
+```java
+// print "ok" after 3 seconds
+Futures.delayed(3000L).runAsync(() -> System.out.println("ok"));
+
+// a future that completes after 3 seconds with the string result, "ok"
+Futures.delayed(3000L).supplyAsync(() -> "ok");
+
+// a future that delays the future returned by getSomeFuture() by 3 seconds
+Futures.delayed(3000L).supplyFuture(() -> getSomeFuture());
+```
+
+For more control, you can provide a `java.util.concurrent.Executor` to use for the delaying thread, as in:
+
+```java
+Futures.delayed(3000L, someExecutor).supplyAsync(() -> "ok");
+```
+
 ### Retrying Future
 
+We often want to retry futures a number of times. Perhaps the network was temporarily down, or a
+cache write check/set operation failed. With `Futures.retrying()`, we can control simple retry behavior.
+
+```java
+// future that will retry the supplied operation up to 3 times.
+Futures.retrying()
+    .withRetryCount(3)
+    .supplyAsync(() -> operationThatMightFail());
+
+// future that will retry the supplied operation up to 3 times, waiting 3 seconds
+// between each attempt.
+Futures.retrying()
+    .withRetryCount(5)
+    .withDelay(3000L)
+    .supplyAsync(() -> operationThatMightFail());
+
+// future that will retry the supplied operation up to 3 times, waiting a random
+// amount of time (from 3 and 10 seconds) between each attempt.
+Futures.retrying()
+    .withRetryCount(5)
+    .withDelay(3000L, 10000L)
+    .supplyAsync(() -> operationThatMightFail());
+```
+
+As with delayed futures, you can also pass in a `java.util.concurrent.Executor` to use for the retrying
+and delaying thread. The retrying future decorator also provides methods to `runAsync()` and
+`supplyFuture()`.
+
 ### Future with Timing
+
+Sometimes you'll want to time your `CompletableFuture`s. Maybe you want to log a warning if some operation
+takes too long. Enter `Futures.timing()`.
+
+```java
+Futures.timing(timeInterval -> LOGGER.log("Operation took {} ms", timeInterval.getDuration().toMillis()))
+    .runAsync(() -> performSomeOperation());
+```
