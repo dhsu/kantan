@@ -4,9 +4,26 @@ More core libraries for Java 8+
 
 ## Table of Contents
 
+* [About](#about)
 * [Collectors](#collectors)
 * [Streams](#streams)
 * [Futures](#futures)
+
+
+
+
+## About
+
+Kantan provides commonly needed functionality on top of Java 8+ and [Guava](https://github.com/google/guava).
+It is available in the [Maven Central Repository](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.krayne%22%20AND%20a%3A%22kantan%22).
+
+```xml
+<dependency>
+    <groupId>org.krayne</groupId>
+    <artifactId>kantan</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
 
 
 
